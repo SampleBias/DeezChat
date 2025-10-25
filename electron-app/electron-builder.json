@@ -1,0 +1,141 @@
+{
+  "build": {
+    "appId": "chat.deezchat.electron",
+    "productName": "DeezChat",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build",
+      "buildResources": "public"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "assets/**/*",
+      "setup.js",
+      "setup-macos-bluetooth.sh",
+      "setup-linux-bluetooth.sh",
+      "install-linux-dependencies.sh"
+    ],
+    "extraResources": [
+      {
+        "from": "setup-macos-bluetooth.sh",
+        "to": "Resources/",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.social-networking",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"],
+          "icon": "assets/icon.icns"
+        }
+      ],
+      "extendInfo": {
+        "LSUIElement": true,
+        "NSRequiresAquaSystemAppearance": true
+        "NSBluetoothAlwaysUsageDescription": "DeezChat requires Bluetooth access to discover and connect to BitChat peers in your local area. This enables encrypted peer-to-peer messaging without internet connectivity."
+      },
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"],
+          "icon": "build/icon.ico",
+          "requestedExecutionLevel": "asInvoker"
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"],
+          "icon": "build/icon.ico"
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"],
+          "icon": "build/icon.png",
+          "category": "Network"
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"],
+          "icon": "build/icon.png",
+          "category": "Network",
+          "depends": [
+            "libbluetooth3 (>= 5.50)",
+            "python3 (>= 3.8)",
+            "python3-pip (>= 21.0)"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": ["x64"],
+          "icon": "build/icon.png",
+          "category": "Network"
+        }
+      ],
+      "icon": "build/icon.png",
+      "desktop": {
+        "Name": "DeezChat",
+        "Comment": "BitChat-compatible decentralized chat client",
+        "Keywords": "bluetooth;messaging;chat;p2p;bitchat;mesh",
+        "Exec": "deezchat",
+        "Terminal": "false",
+        "Type": "Application",
+        "Categories": "Network;Chat;"
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DeezChat",
+      "include": [
+        "build/installer.nsh"
+      ],
+      "script": "installer.nsh"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "Applications"
+        },
+        {
+          "x": 130,
+          "y": 150,
+          "type": "file",
+          "path": "Applications/DeezChat.app"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "deezchat",
+      "repo": "deezchat-electron"
+    }
+  }
+}
