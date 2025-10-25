@@ -21,7 +21,7 @@ from bleak.exc import BleakError
 
 from ..storage.config import Config
 from ..utils.compression import compress_if_beneficial
-from ..utils.frangmentation import fragment_payload, MAX_FRAGMENT_SIZE
+from ..utils.fragmentation import fragment_payload, Fragment
 from ..core.message import MessageType
 
 logger = logging.getLogger(__name__)

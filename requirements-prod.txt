@@ -1,4 +1,4 @@
-# DeezChat Core Requirements
+# DeezChat Requirements - Optimized for production
 bleak>=0.20.0
 cryptography>=3.4.8
 pybloom-live>=4.0.0

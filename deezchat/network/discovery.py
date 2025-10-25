@@ -476,7 +476,7 @@ class PeerDiscovery:
         
         return stats
     
-    def force_scan(self) -> bool:
+    async def force_scan(self) -> bool:
         """Force immediate scan"""
         if not self.running:
             logger.warning("Peer discovery not running")

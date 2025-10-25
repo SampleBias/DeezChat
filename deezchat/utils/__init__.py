@@ -5,7 +5,7 @@ Contains compression, fragmentation, metrics, and other utilities.
 """
 
 from .compression import compress_if_beneficial, decompress
-from .frangmentation import fragment_payload, Fragment, FragmentType, MAX_FRAGMENT_SIZE
+from .fragmentation import fragment_payload, Fragment, FragmentType
 from .metrics import MetricsCollector
 
 __all__ = [
@@ -14,6 +14,5 @@ __all__ = [
     'fragment_payload',
     'Fragment',
     'FragmentType',
-    'MAX_FRAGMENT_SIZE',
     'MetricsCollector'
 ]

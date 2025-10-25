@@ -13,7 +13,6 @@ import logging
 from pathlib import Path
 
 from .client import DeezChatClient
-from .storage.config import ConfigManager
 
 logger = logging.getLogger(__name__)
 

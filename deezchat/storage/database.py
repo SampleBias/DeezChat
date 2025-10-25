@@ -29,9 +29,9 @@ class Message:
     id: str
     sender_id: str
     sender_nickname: str
+    content: str
     recipient_id: Optional[str] = None
     recipient_nickname: Optional[str] = None
-    content: str
     channel: Optional[str] = None
     is_private: bool = False
     is_encrypted: bool = False

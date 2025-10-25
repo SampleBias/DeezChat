@@ -18,7 +18,7 @@ import hashlib
 
 from ..storage.config import Config
 from ..storage.database import Message, MessageFilters
-from ..utils.frangmentation import fragment_payload, Fragment, FragmentType, MAX_FRAGMENT_SIZE
+from ..utils.fragmentation import fragment_payload, Fragment, FragmentType
 from ..utils.compression import compress_if_beneficial
 from ..core.message import MessageType
 from ..utils.metrics import MetricsCollector
