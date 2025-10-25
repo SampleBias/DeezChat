@@ -1,44 +1,186 @@
 {
   "name": "deezchat-electron",
   "version": "1.0.0",
-  "description": "DeezChat - BitChat Electron Client",
+  "description": "DeezChat - BitChat Electron Client with Native Bluetooth Access",
   "main": "main.js",
+  "homepage": "https://github.com/deezchat/deezchat-electron",
+  "keywords": [
+    "bitchat",
+    "bluetooth",
+    "mesh-network",
+    "p2p",
+    "encryption",
+    "chat",
+    "electron",
+    "deezchat"
+  ],
+  "author": "DeezChat Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder",
-    "dev": "electron . --dev"
+    "dev": "concurrently \"npm run dev-electron\" \"npm run dev-watcher\"",
+    "dev-electron": "electron . --dev",
+    "dev-watcher": "nodemon --exec 'electron .' --ext js,html --ignore build/ node_modules/ dist/'",
+    "build": "chmod +x build.sh && ./build.sh",
+    "build:mac": "./build.sh mac",
+    "build:linux": "./build.sh linux", 
+    "build:win": "./build.sh win",
+    "build:all": "./build.sh all",
+    "build:portable": "./build.sh portable",
+    "setup": "chmod +x setup.js && node setup.js setup",
+    "setup:check": "node setup.js check",
+    "setup:install": "node setup.js install",
+    "icons": "chmod +x build.sh && node build.sh icons",
+    "test": "npm run test:unit",
+    "test:e2e": "npm run test:e2e",
+    "test:bluetooth": "npm run test:bluetooth",
+    "test:integration": "npm run test:integration",
+    "diagnose": "npm run diagnostics",
+    "lint": "npm run lint",
+    "lint:fix": "npm run lint:fix",
+    "format": "npm run format",
+    "precommit": "npm run lint && npm run test",
+    "clean": "rm -rf dist/ build/ node_modules/.cache",
+    "pack": "npm run build && npm run pack",
+    "dist": "npm run build && npm run create-release",
+    "create-release": "node scripts/create-release.js",
+    "postinstall": "node setup.js check",
+    "uninstall": "npm run clean && rm -rf node_modules/"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.0.0",
+    "concurrently": "^8.2.0",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.6.0",
+    "nodemon": "^3.0.1",
+    "wait-on": "^7.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "node-machine-id": "^1.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.0",
+    "eslint": "^8.49.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.0",
+    "eslint-plugin-standard": "^5.0.0",
+    "prettier": "^3.1.0",
+    "standard": "^17.1.0",
+    "tape": "^5.7.0"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.32.0",
+    "bufferutil": "^4.0.8",
+    "usb": "^2.0.2",
+    "node-hid": "^3.0.2"
   },
   "build": {
     "appId": "chat.deezchat.electron",
     "productName": "DeezChat",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
       "main.js",
-      "preload.js",
-      "frontend/**/*",
+      "preload.js", 
+      "index.html",
       "assets/**/*",
+      "setup.js",
+      "setup-macos-bluetooth.sh",
+      "setup-linux-bluetooth.sh",
+      "setup-windows-bluetooth.bat",
+      "install-linux-dependencies.sh",
+      "build.sh",
+      "build/**/*",
       "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "setup-macos-bluetooth.sh",
+        "to": "Resources/",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "setup-windows-bluetooth.bat",
+        "to": "Resources/",
+        "filter": ["**/*"]
+      }
     ],
     "mac": {
       "category": "public.app-category.social-networking",
+      "icon": "assets/icon.icns",
+      "iconFallbacks": [
+        "assets/icon-16.png",
+        "assets/icon-32.png",
+        "assets/icon-64.png",
+        "assets/icon-128.png",
+        "assets/icon-256.png",
+        "assets/icon-512.png"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": {
+        "com.apple.security.device.bluetooth": "allowed"
+      },
+      "extendInfo": {
+        "NSBluetoothAlwaysUsageDescription": "DeezChat requires Bluetooth access to discover and connect to BitChat peers in your local area. This enables encrypted peer-to-peer messaging without internet connectivity.",
+        "NSBluetoothPeripheralUsageDescription": "DeezChat uses Bluetooth Low Energy to communicate with BitChat peers for decentralized messaging."
+      },
       "target": [
         {
           "target": "dmg",
           "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "mas",
+          "arch": ["x64", "arm64"],
+          "entitlements": {
+            "com.apple.security.device.bluetooth": "allowed"
+          }
         }
       ]
     },
     "win": {
+      "icon": "assets/icon.ico",
+      "iconFallbacks": [
+        "assets/icon-16.png",
+        "assets/icon-32.png",
+        "assets/icon-64.png",
+        "assets/icon-128.png",
+        "assets/icon-256.png",
+        "assets/icon-512.png"
+      ],
+      "requestedExecutionLevel": "asInvoker",
       "target": [
         {
           "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
           "arch": ["x64"]
         }
       ]
     },
     "linux": {
+      "icon": "assets/icon.png",
+      "iconFallbacks": [
+        "assets/icon-16.png",
+        "assets/icon-32.png",
+        "assets/icon-64.png",
+        "assets/icon-128.png",
+        "assets/icon-256.png",
+        "assets/icon-512.png"
+      ],
+      "category": "Network",
       "target": [
         {
           "target": "AppImage",
@@ -47,28 +189,63 @@
         {
           "target": "deb",
           "arch": ["x64"]
+        },
+        {
+          "target": "rpm",
+          "arch": ["x64"]
+        },
+        {
+          "target": "snap",
+          "arch": ["x64"]
         }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "assets/icon.ico",
+      "installerSidebar": "auto",
+      "installerHeader": "assets/installer.bmp",
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "DeezChat",
+      "include": "build/installer.nsh",
+      "menuCategory": "Network"
+    },
+    "snap": {
+      "plugs": [
+        "default",
+        "bluez",
+        "browser-support",
+        "network-manager",
+        "desktop",
+        "desktop-legacy"
       ]
     }
   },
-  "keywords": [
-    "bitchat",
-    "bluetooth",
-    "messaging",
-    "chat",
-    "p2p",
-    "mesh-network"
-  ],
-  "author": "DeezChat Team",
-  "license": "MIT",
-  "devDependencies": {
-    "electron": "^27.0.0",
-    "electron-builder": "^24.0.0",
-    "concurrently": "^8.0.0"
+  "standard": {
+    "ignore": [
+      "standard/no-unused-vars",
+      "standard/no-callback-literal"
+    ]
   },
-  "dependencies": {
-    "axios": "^1.6.0",
-    "node-machine-id": "^1.1.12"
-    "systeminformation": "^5.21.0"
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "es2021": true
+    },
+    "extends": "standard",
+    "rules": {
+      "brace-style": ["error"],
+      "indent": ["error", 2],
+      "quotes": ["error", "single"],
+      "semi": ["error", "always"],
+      "no-console": ["warn"]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deezchat/deezchat-electron"
   }
 }
