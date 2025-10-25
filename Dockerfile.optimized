@@ -1,0 +1,76 @@
+# Optimized multi-stage Dockerfile for DeezChat
+FROM python:3.11-slim as builder
+
+# Build environment
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    libssl-dev \
+    libbluetooth-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create and activate virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+COPY requirements-prod.txt /tmp/
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements-prod.txt
+
+# Production stage - minimal runtime
+FROM python:3.11-slim
+
+# Runtime environment
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libbluetooth3 \
+    libglib2.0-0 \
+    bluez \
+    dbus \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy virtual environment
+COPY --from=builder /opt/venv /opt/venv
+
+# Create app user
+RUN groupadd -r deezchat && \
+    useradd -r -g deezchat -d /app -s /bin/bash deezchat
+
+# Create app directories
+RUN mkdir -p /app/data /app/config && \
+    chown -R deezchat:deezchat /app
+
+# Copy only essential application files
+COPY --chown=deezchat:deezchat deezchat/ /app/deezchat/
+COPY --chown=deezchat:deezchat setup.py /app/
+COPY --chown=deezchat:deezchat README.md /app/
+
+WORKDIR /app
+
+# Install the application
+RUN pip install -e .
+
+# Switch to non-root user
+USER deezchat
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import deezchat; print('OK')" || exit 1
+
+# Set entrypoint to handle arguments properly
+ENTRYPOINT ["python", "-m", "deezchat"]
+
+# Default command (empty to allow CLI arguments)
+CMD []

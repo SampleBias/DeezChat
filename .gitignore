@@ -1,0 +1,29 @@
+electron-app/
+
+# Large files (tracked by LFS)
+*.iso
+*.dmg
+*.exe
+*.zip
+*.tar.gz
+*.tar.bz2
+
+# Binary files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+
+# Source code
+*.py
+*.md
+*.yaml
+*.yml
+*.json
+*.txt
+*.sh
+Dockerfile
+docker-compose.*
+electron-app/
+electron-app/
