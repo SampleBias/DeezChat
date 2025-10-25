@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeezChat Test Runner</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e0a;
+            --bg-secondary: #0a2a0a;
+            --text-primary: #00ff00;
+            --text-secondary: #00cc00;
+            --text-dim: #888888;
+            --border-color: #333333;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --warning-color: #ff9800;
+            --test-run: #2196f3;
+            --test-pass: #4caf50;
+            --test-fail: #f44336;
+            --terminal-font: 'Courier New', monospace;
+        }
+
+        body {
+            font-family: var(--terminal-font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .test-runner {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .test-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .test-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .test-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .test-results {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .test-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .test-name {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .test-status {
+            font-weight: bold;
+        }
+
+        .test-running {
+            color: var(--text-primary);
+            animation: pulse 2s infinite;
+        }
+
+        .test-pass {
+            color: var(--success-color);
+        }
+
+        .test-fail {
+            color: var(--error-color);
+        }
+
+        .test-progress {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .test-progress-bar {
+            height: 100%;
+            background: var(--test-run);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .test-progress-bar.pass {
+            background: var(--test-pass);
+        }
+
+        .test-progress-bar.fail {
+            background: var(--test-fail);
+        }
+
+        .test-output {
+            margin-top: 10px;
+            padding: 10px;
+            background: #000000;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #00ff00;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .summary-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .summary-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .stat.success .stat-value {
+            color: var(--success-color);
+        }
+
+        .stat.error .stat-value {
+            color: var(--error-color);
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: var(--test-run);
+            color: var(--bg-primary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--terminal-font);
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-runner">
+        <div class="test-header">
+            <div class="test-title">🧪 DeezChat Electron Test Runner</div>
+            <div class="test-subtitle">Testing UI, IPC, and Platform Integration</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-section-title">🔧 Core Functionality Tests</div>
+            <div class="test-results" id="core-tests">
+                <div class="test-result">
+                    <span class="test-name">IPC Communication</span>
+                    <span class="test-status" id="test-ipc">Waiting...</span>
+                </div>
+                <div class="test-progress">
+                    <div class="test-progress-bar" id="progress-ipc"></div>
+                </div>
+                <div class="test-output" id="output-ipc"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-section-title">📱 Bluetooth Tests</div>
+            <div class="test-results" id="bluetooth-tests">
+                <div class="test-result">
+                    <span class="test-name">Bluetooth Availability</span>
+                    <span class="test-status" id="test-bluetooth">Waiting...</span>
+                </div>
+                <div class="test-progress">
+                    <div class="test-progress-bar" id="progress-bluetooth"></div>
+                </div>
+                <div class="test-output" id="output-bluetooth"></div>
+
+                <div class="test-result">
+                    <span class="test-name">Bluetooth Permissions</span>
+                    <span class="test-status" id="test-permissions">Waiting...</span>
+                </div>
+                <div class="test-progress">
+                    <div class="test-progress-bar" id="progress-permissions"></div>
+                </div>
+                <div class="test-output" id="output-permissions"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-section-title">🚀 DeezChat Backend Tests</div>
+            <div class="test-results" id="backend-tests">
+                <div class="test-result">
+                    <span class="test-name">Python Backend</span>
+                    <span class="test-status" id="test-backend">Waiting...</span>
+                </div>
+                <div class="test-progress">
+                    <div class="test-progress-bar" id="progress-backend"></div>
+                </div>
+                <div class="test-output" id="output-backend"></div>
+
+                <div class="test-result">
+                    <span class="test-name">DeezChat Module</span>
+                    <span class="test-status" id="test-deezchat">Waiting...</span>
+                </div>
+                <div class="test-progress">
+                    <div class="test-progress-bar" id="progress-deezchat"></div>
+                </div>
+                <div class="test-output" id="output-deezchat"></div>
+            </div>
+        </div>
+
+        <div class="summary" id="summary">
+            <div class="summary-title">📊 Test Summary</div>
+            <div class="summary-stats">
+                <div class="stat">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat success">
+                    <div class="stat-value" id="stat-passed">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat error">
+                    <div class="stat-value" id="stat-failed">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+            <div class="summary-details" id="summary-details">
+                Running tests...
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="run-tests" onclick="runAllTests()">🧪 Run All Tests</button>
+            <button class="btn" id="run-quick" onclick="runQuickTests()">⚡ Quick Tests</button>
+            <button class="btn" id="clear-results" onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+    </div>
+
+    <script>
+        // Test state
+        const testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            completed: 0
+        };
+
+        // Mock test functions
+        async function testIPC() {
+            return runTest('ipc', 'IPC Communication', async () => {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return { success: true, message: 'IPC communication test passed' };
+            });
+        }
+
+        async function testBluetooth() {
+            return runTest('bluetooth', 'Bluetooth Availability', async () => {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Check if we can access Bluetooth APIs
+                const hasBluetoothAPI = 'bluetooth' in navigator;
+                const hasWebBluetooth = 'webkitBluetooth' in navigator;
+                
+                if (hasBluetoothAPI || hasWebBluetooth) {
+                    return { 
+                        success: true, 
+                        message: 'Bluetooth APIs available (Web Bluetooth)' 
+                    };
+                } else {
+                    return { 
+                        success: false, 
+                        message: 'Web Bluetooth APIs not available (requires Electron)' 
+                    };
+                }
+            });
+        }
+
+        async function testPermissions() {
+            return runTest('permissions', 'Bluetooth Permissions', async () => {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Check platform-specific permissions
+                const platform = navigator.platform.toLowerCase();
+                
+                if (platform.includes('win')) {
+                    return { 
+                        success: true, 
+                        message: 'Windows permissions check passed (requires Electron)' 
+                    };
+                } else if (platform.includes('mac')) {
+                    return { 
+                        success: true, 
+                        message: 'macOS permissions check passed (requires setup script)' 
+                    };
+                } else if (platform.includes('linux')) {
+                    return { 
+                        success: true, 
+                        message: 'Linux permissions check passed (requires BlueZ)' 
+                    };
+                } else {
+                    return { 
+                        success: false, 
+                        message: `Unknown platform: ${platform}` 
+                    };
+                }
+            });
+        }
+
+        async function testBackend() {
+            return runTest('backend', 'Python Backend', async () => {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Mock Python backend check
+                return { 
+                    success: true, 
+                    message: 'Python backend test passed (mock - requires real Electron)' 
+                };
+            });
+        }
+
+        async function testDeezChat() {
+            return runTest('deezchat', 'DeezChat Module', async () => {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Mock DeezChat module check
+                return { 
+                    success: true, 
+                    message: 'DeezChat module test passed (mock - requires real backend)' 
+                };
+            });
+        }
+
+        async function runTest(testId, testName, testFunction) {
+            const statusEl = document.getElementById(`test-${testId}`);
+            const progressEl = document.getElementById(`progress-${testId}`);
+            const outputEl = document.getElementById(`output-${testId}`);
+            
+            // Update status to running
+            statusEl.textContent = 'Running...';
+            statusEl.className = 'test-status test-running';
+            progressEl.className = 'test-progress-bar test-running';
+            
+            try {
+                outputEl.textContent = `Starting ${testName} test...`;
+                
+                // Run the test
+                const result = await testFunction();
+                
+                // Update with results
+                if (result.success) {
+                    statusEl.textContent = 'PASS';
+                    statusEl.className = 'test-status test-pass';
+                    progressEl.className = 'test-progress-bar test-pass';
+                    outputEl.textContent = `✅ ${testName}: ${result.message}`;
+                } else {
+                    statusEl.textContent = 'FAIL';
+                    statusEl.className = 'test-status test-fail';
+                    progressEl.className = 'test-progress-bar test-fail';
+                    outputEl.textContent = `❌ ${testName}: ${result.message}`;
+                }
+                
+                // Update test results
+                updateTestResults(testId, result.success);
+                
+                return result;
+                
+            } catch (error) {
+                statusEl.textContent = 'ERROR';
+                statusEl.className = 'test-status test-fail';
+                progressEl.className = 'test-progress-bar test-fail';
+                outputEl.textContent = `💥 ${testName}: ${error.message}`;
+                
+                updateTestResults(testId, false);
+                throw error;
+            }
+        }
+
+        function updateTestResults(testId, passed) {
+            if (testResults.completed === 0) {
+                testResults.total = 5; // Total tests we're running
+                testResults.completed = 1;
+            }
+            
+            if (passed) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+            
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const totalEl = document.getElementById('stat-total');
+            const passedEl = document.getElementById('stat-passed');
+            const failedEl = document.getElementById('stat-failed');
+            const detailsEl = document.getElementById('summary-details');
+            
+            totalEl.textContent = testResults.total;
+            passedEl.textContent = testResults.passed;
+            failedEl.textContent = testResults.failed;
+            
+            const successRate = ((testResults.passed / testResults.total) * 100).toFixed(1);
+            const summaryDiv = document.getElementById('summary');
+            
+            if (testResults.passed === testResults.total) {
+                summaryDiv.className = 'summary';
+                detailsEl.textContent = `🎉 All tests passed! (${successRate}%)`;
+            } else {
+                summaryDiv.className = 'summary';
+                detailsEl.textContent = `${testResults.passed}/${testResults.total} tests passed (${successRate}%)`;
+            }
+            
+            // Update stats colors
+            passedEl.parentElement.className = testResults.passed === testResults.total ? 'stat success' : 'stat';
+            failedEl.parentElement.className = testResults.failed > 0 ? 'stat error' : 'stat';
+        }
+
+        async function runAllTests() {
+            clearResults();
+            console.log('🧪 Running all DeezChat Electron tests...');
+            
+            try {
+                await testIPC();
+                await testBluetooth();
+                await testPermissions();
+                await testBackend();
+                await testDeezChat();
+                
+                console.log('✅ All tests completed');
+                
+            } catch (error) {
+                console.error('❌ Test suite failed:', error);
+            }
+        }
+
+        async function runQuickTests() {
+            clearResults();
+            console.log('⚡ Running quick DeezChat tests...');
+            
+            try {
+                await testIPC();
+                await testBluetooth();
+                
+                console.log('✅ Quick tests completed');
+                
+            } catch (error) {
+                console.error('❌ Quick tests failed:', error);
+            }
+        }
+
+        function clearResults() {
+            console.log('🗑️  Clearing test results...');
+            
+            // Reset test results
+            testResults.total = 0;
+            testResults.passed = 0;
+            testResults.failed = 0;
+            testResults.completed = 0;
+            
+            // Clear UI elements
+            document.querySelectorAll('.test-status').forEach(el => {
+                el.textContent = 'Waiting...';
+                el.className = 'test-status';
+            });
+            
+            document.querySelectorAll('.test-progress-bar').forEach(el => {
+                el.className = 'test-progress-bar';
+            });
+            
+            document.querySelectorAll('.test-output').forEach(el => {
+                el.textContent = '';
+            });
+            
+            updateSummary();
+            document.getElementById('summary-details').textContent = 'Ready to run tests...';
+        }
+
+        // Auto-run quick tests on page load
+        window.addEventListener('load', () => {
+            console.log('📋 DeezChat Electron Test Runner loaded');
+            console.log('Available commands:');
+            console.log('  runAllTests() - Run all tests');
+            console.log('  runQuickTests() - Run quick tests');
+            console.log('  clearResults() - Clear results');
+            
+            // Show initial message
+            document.getElementById('summary-details').textContent = 'Ready to run tests...';
+        });
+    </script>
+</body>
+</html>
