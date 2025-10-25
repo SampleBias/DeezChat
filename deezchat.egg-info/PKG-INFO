@@ -1,0 +1,62 @@
+Metadata-Version: 2.4
+Name: deezchat
+Version: 1.2.0
+Summary: DeezChat - BitChat Python Client
+Home-page: https://github.com/deezchat/deezchat
+Author: DeezChat Team
+Author-email: contact@deezchat.org
+License: MIT
+Project-URL: Bug Reports, https://github.com/deezchat/deezchat/issues
+Project-URL: Source, https://github.com/deezchat/deezchat
+Project-URL: Documentation, https://github.com/deezchat/deezchat/wiki
+Keywords: bitchat,chat,bluetooth,ble,decentralized,encrypted,p2p,peer-to-peer,privacy,security,noise-protocol,cryptography
+Platform: any
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Communications :: Chat
+Classifier: Topic :: Security :: Cryptography
+Classifier: Topic :: System :: Networking
+Requires-Python: >=3.8
+Description-Content-Type: text/plain
+License-File: LICENSE
+Requires-Dist: bleak>=0.20.0
+Requires-Dist: cryptography>=3.4.8
+Requires-Dist: pybloom-live>=4.0.0
+Requires-Dist: aioconsole>=0.6.0
+Requires-Dist: lz4>=3.1.0
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: aiosqlite>=0.17.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=22.0.0; extra == "dev"
+Requires-Dist: isort>=5.10.0; extra == "dev"
+Requires-Dist: flake8>=5.0.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+Requires-Dist: twine>=4.0.0; extra == "dev"
+Provides-Extra: test
+Requires-Dist: pytest>=7.0.0; extra == "test"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "test"
+Requires-Dist: pytest-cov>=4.0.0; extra == "test"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: platform
+Dynamic: project-url
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
