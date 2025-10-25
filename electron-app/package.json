@@ -1,0 +1,74 @@
+{
+  "name": "deezchat-electron",
+  "version": "1.0.0",
+  "description": "DeezChat - BitChat Electron Client",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "dev": "electron . --dev"
+  },
+  "build": {
+    "appId": "chat.deezchat.electron",
+    "productName": "DeezChat",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "frontend/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.social-networking",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ]
+    }
+  },
+  "keywords": [
+    "bitchat",
+    "bluetooth",
+    "messaging",
+    "chat",
+    "p2p",
+    "mesh-network"
+  ],
+  "author": "DeezChat Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.0.0",
+    "concurrently": "^8.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "node-machine-id": "^1.1.12"
+    "systeminformation": "^5.21.0"
+  }
+}

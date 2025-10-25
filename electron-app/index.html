@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeezChat - BitChat Electron Client</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e0a;
+            --bg-secondary: #0a2a0a;
+            --bg-accent: #ff6b35;
+            --text-primary: #00ff00;
+            --text-secondary: #00cc00;
+            --text-dim: #888888;
+            --border-color: #333333;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --output-bg: #0a0e0a;
+            --terminal-font: 'Courier New', monospace;
+        }
+
+        body.dark-theme {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #0a1a0a;
+            --text-primary: #ff6b35;
+            --text-secondary: #ff8c00;
+            --output-bg: #0a0a0a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--terminal-font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--bg-secondary);
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-title::before {
+            content: "📱";
+            font-size: 20px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 100px;
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .status-value {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-secondary);
+            min-height: 16px;
+        }
+
+        .status-value.success {
+            color: var(--success-color);
+        }
+
+        .status-value.active {
+            color: var(--text-primary);
+            animation: pulse 2s infinite;
+        }
+
+        .status-value.error {
+            color: var(--error-color);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: var(--bg-accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--terminal-font);
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .output-container {
+            background: var(--output-bg);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            margin: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .output-header {
+            background: var(--bg-secondary);
+            padding: 8px 15px;
+            font-size: 12px;
+            font-weight: bold;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .output-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .output-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .clear-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: var(--terminal-font);
+            font-size: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .clear-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        #output {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: var(--terminal-font);
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output-line {
+            margin-bottom: 4px;
+            padding: 2px 0;
+            border-left: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .output-line.info {
+            border-left-color: var(--text-primary);
+        }
+
+        .output-line.success {
+            border-left-color: var(--success-color);
+        }
+
+        .output-line.error {
+            border-left-color: var(--error-color);
+        }
+
+        .output-line.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .output-line.command {
+            border-left-color: var(--text-secondary);
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        .control-panel {
+            background: var(--bg-secondary);
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .input-group input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: var(--terminal-font);
+            font-size: 12px;
+        }
+
+        .input-group button {
+            background: var(--bg-accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--terminal-font);
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .peers-section {
+            background: var(--bg-secondary);
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            max-height: 300px;
+        }
+
+        .peer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .peer-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .peer-item:hover {
+            border-color: var(--text-secondary);
+            transform: translateY(-1px);
+        }
+
+        .peer-item.flash {
+            animation: flash 1s ease-in-out;
+        }
+
+        .peer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .peer-name {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .peer-fingerprint {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-family: monospace;
+        }
+
+        .peer-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .peer-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+        }
+
+        .peer-indicator.online {
+            background: var(--success-color);
+            color: var(--bg-primary);
+        }
+
+        .peer-indicator.offline {
+            background: var(--text-dim);
+            color: var(--bg-primary);
+        }
+
+        .peer-time {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .no-peers {
+            text-align: center;
+            color: var(--text-dim);
+            font-style: italic;
+            padding: 40px 20px;
+            border: 2px dashed var(--border-color);
+            border-radius: 6px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes flash {
+            0% { background-color: var(--bg-primary); }
+            50% { background-color: var(--bg-accent); }
+            100% { background-color: var(--bg-primary); }
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+        }
+
+        .footer {
+            background: var(--bg-secondary);
+            padding: 10px 20px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="app-title">
+            DeezChat
+        </div>
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-label">DeezChat</div>
+                <div class="status-value" id="deezchat-status">Stopped</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Bluetooth</div>
+                <div class="status-value" id="bluetooth-status">Unknown</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Peers</div>
+                <div class="status-value" id="peer-count">0</div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn" id="check-bluetooth-btn">Check Bluetooth</button>
+                <button class="btn" id="start-btn">Start DeezChat</button>
+                <button class="btn" id="stop-btn" disabled>Stop DeezChat</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="output-container">
+            <div class="output-header">
+                <div class="output-stats">
+                    <span>Peers: <span id="output-peer-count">0</span></span>
+                    <span>DeezChat: <span id="output-status">Stopped</span></span>
+                </div>
+                <div class="output-controls">
+                    <button class="clear-btn" id="clear-output">Clear</button>
+                </div>
+            </div>
+            <div id="output"></div>
+        </div>
+
+        <div class="control-panel">
+            <div class="section-title">🔧 Commands</div>
+            <div class="input-group">
+                <input type="text" id="command-input" placeholder="Enter command (/help, /join, /dm, /quit)" />
+                <button id="send-btn">Send</button>
+            </div>
+            
+            <div class="section-title">📋 Quick Actions</div>
+            <div class="button-group">
+                <button id="install-btn" class="btn full-width">Install DeezChat CLI</button>
+                <button id="show-license" class="btn full-width">View License</button>
+            </div>
+        </div>
+
+        <div id="peers-section" class="peers-section hidden">
+            <div class="section-title">👥 Discovered BitChat Peers</div>
+            <div class="peer-list" id="peer-list"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div>DeezChat - BitChat Python Client v1.2.0 | Powered by Noise Protocol & Bluetooth LE Mesh</div>
+    </footer>
+
+    <script src="preload.js"></script>
+</body>
+</html>
