@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  deezchat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_DATE: ${BUILD_DATE:-}
+        VERSION: ${VERSION:-latest}
+        VCS_REF: ${VCS_REF:-}
+    image: deezchat/deezchat:${VERSION:-latest}
+    container_name: deezchat
+    restart: unless-stopped
+    user: deezchat
+    environment:
+      - DEEZCHAT_DATA_DIR=/app/data
+      - DEEZCHAT_CONFIG_DIR=/app/config
+      - DEEZCHAT_LOG_DIR=/app/logs
+      - DEEZCHAT_LOG_LEVEL=${DEEZCHAT_LOG_LEVEL:-INFO}
+      - DEEZCHAT_SCAN_INTERVAL=${DEEZCHAT_SCAN_INTERVAL:-5}
+      - DEEZCHAT_MAX_PEERS=${DEEZCHAT_MAX_PEERS:-50}
+      - DEEZCHAT_TTL=${DEEZCHAT_TTL:-7}
+      - DEEZCHAT_NICKNAME=${DEEZCHAT_NICKNAME:-DeezChat}
+      - DEEZCHAT_THEME=${DEEZCHAT_THEME:-default}
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      - deezchat_data:/app/data
+      - deezchat_config:/app/config
+      - deezchat_logs:/app/logs
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/bus/usb-001:/dev/bus/usb-001
+      - /dev/bus/usb-002:/dev/bus/usb-002
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - SYS_RAWIO
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    ports:
+      - "7331:7331/tcp"  # Debug port if needed
+
+volumes:
+  deezchat_data:
+    driver: local
+    name: deezchat_data
+  deezchat_config:
+    driver: local
+    name: deezchat_config
+  deezchat_logs:
+    driver: local
+    name: deezchat_logs
+
+networks:
+  default:
+    driver: bridge
+    name: deezchat_network
+
+# Development override
+x-development: &dev
+  deezchat:
+    volumes:
+      - .:/app
+      - deezchat_dev_data:/app/data
+      - deezchat_dev_config:/app/config
+      - deezchat_dev_logs:/app/logs
+    environment:
+      - DEEZCHAT_LOG_LEVEL=DEBUG
+      - DEEZCHAT_DEBUG=true
+      - DEEZCHAT_RELOAD_CONFIG=true
+
+# Production override
+x-production: &prod
+  deezchat:
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Use development overrides
+# docker-compose -f docker-compose.yml -f docker-compose.override.yml up

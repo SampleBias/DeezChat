@@ -1,0 +1,25 @@
+# DeezChat Requirements
+# Core dependencies
+bleak>=0.20.0
+cryptography>=3.4.8
+pybloom-live>=4.0.0
+aioconsole>=0.6.0
+lz4>=3.1.0
+PyYAML>=6.0
+aiosqlite>=0.17.0
+
+# Development dependencies
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
+black>=22.0.0
+isort>=5.10.0
+flake8>=5.0.0
+mypy>=1.0.0
+twine>=4.0.0
+
+# Optional dependencies
+# Uncomment if you want to use alternative implementations
+# pyserial>=3.5  # For serial-based debugging
+# psutil>=5.8.0  # For system monitoring
+# prometheus-client>=0.14.0  # For metrics collection
